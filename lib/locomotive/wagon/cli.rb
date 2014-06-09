@@ -246,6 +246,7 @@ module Locomotive
         method_option :force, aliases: '-f', type: 'boolean', default: false, desc: 'Force the push of a resource'
         method_option :translations, aliases: '-t', type: 'boolean', default: false, desc: 'Push the local translations (by default, they are not)'
         method_option :data, aliases: '-d', type: 'boolean', default: false, desc: 'Push the content entries and the editable elements (by default, they are not)'
+        method_option :throttle, aliases: '-s', type: 'boolean', default: false, desc: 'Throttles time between each resource to reduce server load'
         method_option :verbose, aliases: '-v', type: 'boolean', default: false, desc: 'display the full error stack trace if an error occurs'
         def push(env, path = '.')
           if check_path!(path)
