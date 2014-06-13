@@ -2,6 +2,7 @@ pt-BR:
   locomotive:
     locales:
       en: Inglês
+      en-GB: English (Europe)
       de: Alemão
       fr: Francês
       pl: Polonês
@@ -10,6 +11,7 @@ pt-BR:
       nl: Holandês
       nb: Norueguês
       es: Espanhol
+      es-MX: Espanhol (Latam)
       ru: Russo
       et: Estoniano
 
