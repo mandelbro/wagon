@@ -21,23 +21,51 @@ module Locomotive
           end
 
           def all
-            self.collection
+            if self.collection.nil?
+              []
+            else
+              self.collection
+            end
           end
 
           def any
-            self.collection.any?
+            if self.collection.nil?
+              false
+            else
+              self.collection.any?
+            end
           end
 
           def first
-            self.collection.first
+            if self.collection.nil?
+              nil
+            else
+              self.collection.first
+            end
           end
 
           def last
-            self.collection.last
+            if self.collection.nil?
+              nil
+            else
+              self.collection.last
+            end
           end
 
           def size
-            self.collection.size
+            if self.collection.nil?
+              0
+            else
+              self.collection.size
+            end
+          end
+
+          def empty
+            if self.collection.nil?
+              true
+            else
+              self.collection.empty?
+            end
           end
 
           alias :length :size
