@@ -21,7 +21,7 @@ module Locomotive
           end
 
           def all
-            if self.collection.nil?
+            if self.collection.blank?
               []
             else
               self.collection
@@ -29,15 +29,11 @@ module Locomotive
           end
 
           def any
-            if self.collection.nil?
-              false
-            else
-              self.collection.any?
-            end
+            !self.collection.blank?
           end
 
           def first
-            if self.collection.nil?
+            if self.collection.blank?
               nil
             else
               self.collection.first
@@ -45,7 +41,7 @@ module Locomotive
           end
 
           def last
-            if self.collection.nil?
+            if self.collection.blank?
               nil
             else
               self.collection.last
@@ -53,15 +49,11 @@ module Locomotive
           end
 
           def size
-            if self.collection.nil?
-              0
-            else
-              self.collection.size
-            end
+            self.collection.size
           end
 
           def empty
-            if self.collection.nil?
+            if self.collection.blank?
               true
             else
               self.collection.empty?
@@ -139,6 +131,7 @@ module Locomotive
             end
 
             @collection = apply_scope(@content_type.entries)
+            return @collection
           end
         end
       end
