@@ -53,11 +53,7 @@ module Locomotive
           end
 
           def empty
-            if self.collection.blank?
-              true
-            else
-              self.collection.empty?
-            end
+            self.collection.blank?
           end
 
           alias :length :size
