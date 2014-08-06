@@ -130,15 +130,15 @@ module Locomotive
           # @return [ String ] The label in HTML
           #
           def entry_label(page)
-            icon  = @_options[:icon] ? '<span></span>' : ''
+            icon  = @_options[:icon].to_bool ? '<span></span>' : ''
             title = @_options[:liquid_render] ? @_options[:liquid_render].render('page' => page) : page.title
 
             if icon.blank?
               title
             elsif @_options[:icon] == 'after'
-              "#{title} #{icon}"
+              "#{title}#{icon}"
             else
-              "#{icon} #{title}"
+              "#{icon}#{title}"
             end
           end
 
