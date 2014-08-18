@@ -54,7 +54,8 @@ module Locomotive
 
           def size
             self.collection
-            self.collection.size
+
+            !self.collection ? 0 : self.collection.size
           end
 
           def empty
