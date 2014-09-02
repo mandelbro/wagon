@@ -22,24 +22,24 @@ module Locomotive
 
           def all
             self.collection
-            if self.collection.blank?
+            if @collection.blank?
               []
             else
-              self.collection
+              @collection
             end
           end
 
           def any
             self.collection
-            !self.collection.blank?
+            !@collection.blank?
           end
 
           def first
             self.collection
-            if self.collection === nil
-              return nil
+            if @collection.nil?
+              nil
             else
-              self.collection.first
+              @collection.first
             end
           end
 
@@ -54,13 +54,12 @@ module Locomotive
 
           def size
             self.collection
-
-            !self.collection ? 0 : self.collection.size
+            @collection.nil? ? 0 : @collection.size
           end
 
           def empty
             self.collection
-            self.collection.blank?
+            @collection.blank?
           end
 
           alias :length :size
