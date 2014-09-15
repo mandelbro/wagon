@@ -1,4 +1,5 @@
 require 'solid'
+require 'json'
 require 'locomotive/mounter'
 require 'locomotive/wagon/liquid/scopeable'
 require 'locomotive/wagon/liquid/drops/base'
