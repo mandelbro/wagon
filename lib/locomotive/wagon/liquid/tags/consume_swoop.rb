@@ -22,7 +22,7 @@ module Locomotive
         class ConsumeSwoop < Consume
 
           def initialize(tag_name, markup, tokens, context)
-            @swoop_base = ENV['SWOOP_URL'] || 'https://swoop.up.co'
+            @swoop_base = ENV['SWOOP_URL'] || 'http://localhost:3000'
             @swoop_user = ENV['SWOOP_USER'] || ''
             @swoop_pass = ENV['SWOOP_PASS'] || ''
             super
