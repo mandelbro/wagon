@@ -33,6 +33,14 @@ module Locomotive
             result
           end
 
+          def regex_remove(input, regex)
+            input.to_s.gsub(Regexp.new(regex), '')
+          end
+
+          def regex_replace(input, regex, replacement)
+            input.to_s.gsub(Regexp.new(regex), replacement.to_s)
+          end
+
           def encode(input)
             Rack::Utils.escape(input)
           end
