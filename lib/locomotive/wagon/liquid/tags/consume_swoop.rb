@@ -88,11 +88,17 @@ module Locomotive
           end
 
           def render_all_without_cache(context)
-            @options[:query].each do |key,value|
-              @options[:query][key] = context[value] unless context[value].nil?
-            end
+            get_options_context context
             super
           end
+
+          private
+
+            def get_options_context(context)
+              @options[:query].each do |key,value|
+                @options[:query][key] = context[value] unless context[value].nil?
+              end
+            end
 
         end
 
