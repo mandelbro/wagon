@@ -1,6 +1,9 @@
+require 'dotenv'
 require 'locomotive/wagon/version'
 require 'locomotive/wagon/logger'
 require 'locomotive/wagon/exceptions'
+
+Dotenv.load
 
 module Locomotive
   module Wagon
