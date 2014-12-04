@@ -70,17 +70,14 @@ module Locomotive
           end
 
           def render_url
-            known_endpoints = /events|accounts|content_assets|content_entries|current_site|memberships|pages|page|sites|translations/
-            # if @url =~ known_endpoints
-              # Drop leading slash if present
-              rendered_url = @url.slice(1, @url.length) if @url[0] == "/"
+            # Drop leading slash if present
+            rendered_url = @url.slice(1, @url.length) if @url[0] == "/"
 
-              # Set up auth_token
-              @options[:query][:auth_token] ||= locomotive_auth_token
+            # Set up auth_token
+            @options[:query][:auth_token] ||= locomotive_auth_token
 
-              # Prepend value and wrap in quotes before passing along
-              "http://#{ @locomotive_url }/locomotive/api/#{ @url }.json"
-            # end
+            # Prepend value and wrap in quotes before passing along
+            "http://#{ @locomotive_url }/locomotive/api/#{ @url }.json"
           end
 
           def locomotive_auth_token
