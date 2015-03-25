@@ -10,14 +10,7 @@ module Locomotive::Wagon
     end
 
     def start(reader)
-      # if $parent_pid && $parent_pid == Process.pid
-      #   puts "bypassing Listen in the parent process"
-      #   return false
-      # end
-
-      puts "Listening here: #{Process.pid}"
-
-      self.reader = reader
+      @reader = reader
 
       self.definitions.each do |definition|
         self.apply(definition)
@@ -27,9 +20,10 @@ module Locomotive::Wagon
     def definitions
       [
         ['config', /\.yml/, [:site, :content_types, :pages, :snippets, :content_entries, :translations]],
-        ['app/views', /\.liquid/, [:pages, :snippets]],
+        ['app/views', %r{(pages|snippets)/(.+\.liquid).*}, [:pages, :snippets]],
         ['app/content_types', /\.yml/, [:content_types, :content_entries]],
-        ['data', /\.yml/, :content_entries]
+        ['data', /\.yml/, :content_entries],
+        ['public', %r{((stylesheets|javascripts)/(.+\.(css|js))).*}, []]
       ]
     end
 
@@ -40,12 +34,14 @@ module Locomotive::Wagon
         resources = [*definition.last]
         names     = resources.map { |n| "\"#{n}\"" }.join(', ')
 
-        Locomotive::Wagon::Logger.info "* Reloaded #{names} at #{Time.now}"
+        unless resources.empty?
+          Locomotive::Wagon::Logger.info "* Reloaded #{names} at #{Time.now}"
 
-        begin
-          reader.reload(resources)
-        rescue Exception => e
-          Locomotive::Wagon::MounterException.new('Unable to reload', e)
+          begin
+            reader.reload(resources)
+          rescue Exception => e
+            Locomotive::Wagon::MounterException.new('Unable to reload', e)
+          end
         end
       end
 
@@ -56,7 +52,12 @@ module Locomotive::Wagon
       listener = ::Listen.to(path, only: filter, &reloader)
 
       # non blocking listener
-      listener.start #(false)
+      listener.start
+    end
+
+    def relative_path(path)
+      base_path = self.reader.mounting_point.path
+      relative_path = path.sub(base_path, '')
     end
 
   end

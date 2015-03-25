@@ -4,20 +4,25 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'faker'
 
+# Remove I18n warnings (i18n lib is required by faker)
+I18n.enforce_available_locales = false
+
 module Locomotive
   module Wagon
     module Generators
       class ContentType < Thor::Group
 
         include Thor::Actions
+        include Locomotive::Wagon::CLI::ForceColor
 
-        argument :name
-        argument :target_path
+        argument :slug
         argument :fields
+        argument :target_path
 
         def copy_sources
           directory('.', target_path, { recursive: true }, {
-            name:   self.name,
+            name:   name,
+            slug:   slug,
             fields: extract_fields(fields)
           })
         end
@@ -28,15 +33,29 @@ module Locomotive
 
         protected
 
+        def name
+          options['name'] || slug.humanize
+        end
+
         def extract_fields(fields)
           fields.map do |raw_attributes|
-            name, type, required = raw_attributes.split(':')
+            name, type, label, required, localized, target_content_type_slug  = raw_attributes.split(':')
 
-            OpenStruct.new({
-              name:     name,
-              type:     type || 'string',
-              required: %w(true required).include?(required)
-            })
+            OpenStruct.new(
+              name:       name,
+              label:      label || name.humanize,
+              type:       type || 'string',
+              required:   %w(true required).include?(required),
+              localized:  %w(true localized).include?(localized)
+            ).tap do |field|
+              if %w(belongs_to has_many many_to_many).include?(type)
+                field.class_name = target_content_type_slug
+
+                inverse_of = type == 'belongs_to' ? target_content_type_slug.singularize : target_content_type_slug
+
+                field.inverse_of = inverse_of
+              end
+            end
           end
         end
 

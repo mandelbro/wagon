@@ -6,6 +6,7 @@ module Locomotive
         class Foundation5 < Base
 
           may_use_haml
+          may_use_scss
 
           def choose_haml_over_html
             if haml?
@@ -19,6 +20,19 @@ module Locomotive
             end
           end
 
+          def choose_scss_over_css
+            if scss?
+              remove_file File.join(self.destination, 'public/stylesheets/application.css')
+              remove_file File.join(self.destination, 'public/stylesheets/foundation.css')
+              remove_file File.join(self.destination, 'public/stylesheets/normalize.css')
+            else
+              remove_dir File.join(self.destination, 'public/stylesheets/foundation')
+              remove_file File.join(self.destination, 'public/stylesheets/application.css.scss')
+              remove_file File.join(self.destination, 'public/stylesheets/foundation.css.scss')
+              remove_file File.join(self.destination, 'public/stylesheets/normalize.css.scss')
+            end
+          end
+
           def bundle_install
             super
           end
@@ -26,7 +40,7 @@ module Locomotive
         end
 
         Locomotive::Wagon::Generators::Site.register(:foundation5, Foundation5, %{
-          A site powered by Foundation (v5.1.1).
+          A site powered by Foundation (v5.4.7).
         })
       end
     end

@@ -8,40 +8,29 @@ module Locomotive
       class Page < Thor::Group
 
         include Thor::Actions
+        include Locomotive::Wagon::CLI::ForceColor
 
         argument :slug
         argument :target_path # path to the site
-        argument :locales
-
-        attr_accessor :haml
-
-        def ask_for_haml
-          self.haml = yes?('Do you prefer a HAML template ?')
-        end
-
-        def apply_locales?
-          self.locales.shift # remove the default locale
-
-          unless self.locales.empty?
-            unless yes?('Do you want to generate templates for each locale ?')
-              self.locales = []
-            end
-          end
-        end
 
         def create_page
-          extension = self.haml ? 'liquid.haml' : 'liquid'
+          extension = haml? ? 'liquid.haml' : 'liquid'
 
-          segments = self.slug.split('/')
+          segments      = self.slug.split('/').find_all { |segment| segment != '' }
+          max_segments  = segments.size
+
           while segment = segments.pop do
-            options   = { slug: segment, translated: false }
-            file_path = File.join(pages_path, segments, segment)
+            _options    = self.page_options(slug: segment, translated: false)
+            file_path   = File.join(pages_path, segments, segment)
 
-            template "template.#{extension}.tt", "#{file_path}.#{extension}", options
+            # the content type option is never deleted for the first segment (the requested template)
+            _options.delete(:content_type) unless segments.size == (max_segments - 1)
 
-            self.locales.each do |locale|
-              options[:translated] = true
-              template "template.#{extension}.tt", "#{file_path}.#{locale}.#{extension}", options
+            template "template.#{extension}.tt", "#{file_path}.#{extension}", _options
+
+            self.other_locales.each do |locale|
+              _options[:translated] = true
+              template "template.#{extension}.tt", "#{file_path}.#{locale}.#{extension}", _options
             end
           end
         end
@@ -52,8 +41,40 @@ module Locomotive
 
         protected
 
+        def haml?
+          if options[:haml].nil?
+            yes?('Do you prefer a HAML template ?')
+          else
+            options[:haml]
+          end
+        end
+
         def pages_path
           File.join(target_path, 'app', 'views', 'pages')
+        end
+
+        def page_options(base = {})
+          base.merge({
+            title:        options[:title] || base[:slug].humanize,
+            listed:       options[:listed],
+            content_type: options[:content_type]
+          })
+        end
+
+        def other_locales
+          # Rules:
+          # #1 default: [fr, en, es], asked: [en, de], result => [en]
+          # #2 default: [fr, en, de], asked: [es], result => []
+          # #1 default: [fr, en, es], asked: [fr, en, es], result => [en, es]
+
+          _locales  = options[:locales] || ''
+          separator = _locales.include?(',') ? ',' : ' '
+
+          _locales  = _locales.split(separator)
+          locales   = options[:default_locales]
+          locales.shift
+
+          locales & (_locales || [])
         end
 
       end

@@ -34,8 +34,12 @@ module Locomotive
 
         def force_color_if_asked(options)
           if options[:force_color]
+            # thor
             require 'locomotive/wagon/misc/thor'
             self.shell = Thor::Shell::ForceColor.new
+
+            # bypass colorize code
+            STDOUT.instance_eval { def isatty; true; end; }
           end
         end
 
@@ -43,37 +47,71 @@ module Locomotive
 
       class Generate < Thor
 
+        include Locomotive::Wagon::CLI::ForceColor
         include Locomotive::Wagon::CLI::CheckPath
 
         class_option :path, aliases: '-p', type: :string, default: '.', optional: true, desc: 'if your LocomotiveCMS site is not in the current path'
 
         desc 'content_type SLUG FIELDS', 'Creates a content type with the specified slug and fields.'
+        method_option :name, aliases: '-n', type: :string, default: nil, optional: true, desc: 'Name of the content type as it will be displayed in the back-office'
         long_desc <<-LONGDESC
-          Creates a content type with the specified slug and fields.
+          Create a content type with the specified slug and fields.
 
           SLUG should be plural, lowercase, and underscored.
 
-          FIELDS format: field_1[:TYPE][:REQUIRED] field_2[:TYPE][:REQUIRED] ...
+          FIELDS format: field_1[:TYPE][:LABEL][:REQUIRED][:LOCALIZED][:TARGET_CONTENT_TYPE_SLUG] field_2[:TYPE][:LABEL][:REQUIRED][:LOCALIZED][:TARGET_CONTENT_TYPE_SLUG] ...
 
           TYPE values: string, text, integer, float, boolean, email, date, date_time, file, tags, select, belongs_to, has_many, or many_to_many. Default is string.
 
           To require a field, set REQUIRED to true. The first field is required by default.
 
+          TARGET_CONTENT_TYPE_SLUG is the slug of the content type used in the relationship.
+
           Examples:
 
             * wagon generate content_type posts title published_at:date_time:true body:text
 
-            * wagon generate content_type products title price:float photo:file category:belongs_to:true
+            * wagon generate content_type products title price:float photo:file category:belongs_to:Category:true:false:main_categories
         LONGDESC
         def content_type(name, *fields)
+          force_color_if_asked(options)
+
           say('The fields are missing', :red) and return false if fields.empty?
 
           if check_path!
-            Locomotive::Wagon.generate :content_type, name, self.options['path'], fields
+            Locomotive::Wagon.generate :content_type, [name, fields, self.options.delete('path')], self.options
+          end
+        end
+
+        desc 'relationship SOURCE TYPE TARGET', 'Relate 2 existing content types.'
+        long_desc <<-LONGDESC
+          Relate 2 existing content types.
+
+          SOURCE AND TARGET are the slugs of the content types.
+          There should be plural, lowercase, and underscored.
+
+          TYPE values: belongs_to, has_many, or many_to_many.
+
+          Examples:
+
+            * wagon generate relationship posts belongs_to categories
+
+            * wagon generate relationship projects many_to_many developers
+        LONGDESC
+        def relationship(source, type, target)
+          force_color_if_asked(options)
+
+          if check_path!
+            Locomotive::Wagon.generate :relationship, [source, type, target, self.options.delete('path')], self.options
           end
         end
 
         desc 'page FULLPATH', 'Create a page. No need to pass an extension to the FULLPATH arg'
+        method_option :title,         aliases: '-t', type: 'string',    default: nil, desc: 'Title of the page'
+        method_option :haml,          aliases: '-h', type: 'boolean',   default: nil, desc: 'add a HAML extension to the file'
+        method_option :listed,        aliases: '-l', type: 'boolean',   default: false, desc: 'tell if the page is listed in the menu'
+        method_option :content_type,  aliases: '-c', type: 'string',    default: nil, desc: 'tell if the page is a template for a content type'
+        method_option :locales,       aliases: '-lo', type: 'string',   default: nil, desc: 'locales for the various translations'
         long_desc <<-LONGDESC
           Create a page. The generator will ask for the extension (liquid or haml) and also
           if the page is localized or not.
@@ -85,9 +123,11 @@ module Locomotive
             * wagon generate page about_us/me
         LONGDESC
         def page(fullpath)
+          force_color_if_asked(options)
+
           if path = check_path!
-            locales = self.site_config(path)['locales']
-            Locomotive::Wagon.generate :page, fullpath, self.options['path'], locales
+            self.options[:default_locales] = self.site_config(path)['locales']
+            Locomotive::Wagon.generate :page, [fullpath, self.options.delete('path')], self.options
           end
         end
 
@@ -101,9 +141,11 @@ module Locomotive
             * wagon generate snippet footer
         LONGDESC
         def snippet(slug)
+          force_color_if_asked(options)
+
           if path = check_path!
             locales = self.site_config(path)['locales']
-            Locomotive::Wagon.generate :snippet, slug, self.options['path'], locales
+            Locomotive::Wagon.generate :snippet, [slug, locales, self.options.delete('path')], self.options
           end
         end
 
@@ -127,7 +169,7 @@ module Locomotive
         include Locomotive::Wagon::CLI::CheckPath
         include Locomotive::Wagon::CLI::ForceColor
 
-        class_option :force_color, aliases: '-c', type: :boolean, default: false, desc: 'Whether or not to use ANSI color in the output.'
+        class_option :force_color, type: :boolean, default: false, desc: 'Whether or not to use ANSI color in the output.'
 
         desc 'version', 'Version of the LocomotiveCMS Wagon'
         def version
@@ -135,21 +177,32 @@ module Locomotive
           say Locomotive::Wagon::VERSION
         end
 
-        desc 'init NAME [PATH] [OPTIONS]', 'Create a brand new site'
+        desc 'auth [EMAIL] [PASSWORD]', 'Log into the LocomotiveHosting platform'
+        def auth(email = nil, password = nil)
+          say "LocomotiveHosting Sign in/up\n\n", :bold
+
+          email     ||= ask('Enter your e-mail?')
+          password  ||= ask('Enter your password?')
+
+          Locomotive::Wagon.authenticate(email, password, shell)
+        end
+
+        desc 'init NAME [PATH] [GENERATOR_OPTIONS]', 'Create a brand new site'
         method_option :template,    aliases: '-t', type: 'string', default: 'blank', desc: 'instead of building from a blank site, you can also have a pre-fetched site from a template (see the templates command)'
         method_option :lib,         aliases: '-l', type: 'string', desc: 'Path to an external ruby lib or generator'
         method_option :skip_bundle, type: 'boolean', default: false, desc: "Don't run bundle install"
         method_option :verbose,     aliases: '-v', type: 'boolean', default: false, desc: 'display the full error stack trace if an error occurs'
-        def init(name, path = '.', generator_options = nil)
+        def init(name, path = '.', *generator_options)
           force_color_if_asked(options)
           require 'locomotive/wagon/generators/site'
           require File.expand_path(options[:lib]) if options[:lib]
           generator = Locomotive::Wagon::Generators::Site.get(options[:template])
           if generator.nil?
             say "Unknown site template '#{options[:template]}'", :red
+            exit(1)
           else
             begin
-              if Locomotive::Wagon.init(name, path, options[:skip_bundle].to_s, generator, generator_options)
+              if Locomotive::Wagon.init(generator.klass, [name, path, options[:skip_bundle].to_s, *generator_options], { force_color: options[:force_color] })
                 self.print_next_instructions_when_site_created(name, path, options[:skip_bundle])
               end
             rescue GeneratorException => e
@@ -208,6 +261,7 @@ module Locomotive
         method_option :host, aliases: '-h', type: 'string', default: '0.0.0.0', desc: 'The host (address) of the Thin server'
         method_option :port, aliases: '-p', type: 'string', default: '3333', desc: 'The port of the Thin server'
         method_option :daemonize, aliases: '-d', type: 'boolean', default: false, desc: 'Run daemonized Thin server in the background'
+        method_option :live_reload_port, aliases: '-l', type: 'string', default: false, desc: 'Include the Livereload javascript in each page'
         method_option :force, aliases: '-f', type: 'boolean', default: false, desc: 'Stop the current daemonized Thin server if found before starting a new one'
         method_option :verbose, aliases: '-v', type: 'boolean', default: false, desc: 'display the full error stack trace if an error occurs'
         def serve(path = '.')
@@ -246,17 +300,21 @@ module Locomotive
         method_option :force, aliases: '-f', type: 'boolean', default: false, desc: 'Force the push of a resource'
         method_option :translations, aliases: '-t', type: 'boolean', default: false, desc: 'Push the local translations (by default, they are not)'
         method_option :data, aliases: '-d', type: 'boolean', default: false, desc: 'Push the content entries and the editable elements (by default, they are not)'
-        method_option :throttle, aliases: '-s', type: 'boolean', default: false, desc: 'Throttles time between each resource to reduce server load'
+        method_option :shell, type: 'boolean', default: true, desc: 'Use shell to ask for missing connection information like the subdomain (in this case, take a random one)'
         method_option :verbose, aliases: '-v', type: 'boolean', default: false, desc: 'display the full error stack trace if an error occurs'
         def push(env, path = '.')
+          force_color_if_asked(options)
+
           if check_path!(path)
-            if connection_info = self.retrieve_connection_info(env, path)
+            if connection_info = self.retrieve_connection_info(env, path, options[:shell])
               begin
                 Locomotive::Wagon.push(path, connection_info, options)
               rescue Exception => e
                 self.print_exception(e, options[:verbose])
                 exit(1)
               end
+            else
+              exit(1)
             end
           end
         end
@@ -304,8 +362,8 @@ module Locomotive
           say 'Next steps:', :bold
 
           next_instructions = "\tcd #{path}/#{name}\n\t"
-          next_instructions += "bundle install\n\t" if skip_bundle
-          next_instructions += "bundle exec wagon serve\n\topen http://0.0.0.0:3333"
+          next_instructions += "bundle install\n\t" unless skip_bundle
+          next_instructions += "#{'bundle exec ' unless skip_bundle}wagon serve\n\topen http://0.0.0.0:3333"
 
           say next_instructions
         end
@@ -327,29 +385,22 @@ module Locomotive
         #
         # @param [ String ] env The environment (development, staging, production, ...etc)
         # @param [ String ] path The path of the local site
+        # @param [ Boolean ] use_shell True by default, use it to ask for missing information (subdomain for instance)
         #
         # @return [ Hash ] The information of the connection or nil if errors
         #
-        def retrieve_connection_info(env, path)
-          require 'active_support/core_ext/hash'
-          require 'erb'
-          connection_info = nil
+        def retrieve_connection_info(env, path, use_shell = true)
+          require 'locomotive/wagon/misc/deployment_connection'
+
           begin
-            path_to_deploy_file = File.join(path, 'config', 'deploy.yml')
-            env_parsed_deploy_file = ERB.new(File.open(path_to_deploy_file).read).result
-            connection_info = YAML::load(env_parsed_deploy_file)[env.to_s].with_indifferent_access
+            service = Locomotive::Wagon::DeploymentConnection.new(path, use_shell ? shell : nil)
 
-            if connection_info[:ssl] && !connection_info[:host].start_with?('https')
-              connection_info[:host] = 'https://' + connection_info[:host]
-            end
+            service.get_information(env)
 
-            if connection_info.nil?
-              raise "No #{env.to_s} environment found in the config/deploy.yml file"
-            end
           rescue Exception => e
-            say "Unable to read the information about the remote LocomotiveCMS site (#{e.message})", :red
+            self.print_exception(e, options[:verbose])
+            nil
           end
-          connection_info
         end
 
       end

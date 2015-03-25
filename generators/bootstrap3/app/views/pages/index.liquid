@@ -5,13 +5,13 @@ published: true
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
-    <title>Bootply.com - Bootstrap 3 Template</title>
-    <meta name="generator" content="Bootply" />
+    <title>{{ site.name }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    {{ 'bootstrap.css' | stylesheet_tag }}
-    {{ 'bootstrap-glyphicons.css' | stylesheet_tag }}
+
+    {{ 'application.css' | stylesheet_tag }}
+
     <!--[if lt IE 9]>
       <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -20,55 +20,13 @@ published: true
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/samples/apple-touch-icon-114x114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/samples/apple-touch-icon-72x72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="/samples/apple-touch-icon-precomposed.png">
-    <!-- CSS code from Bootply.com editor -->
-    <style type="text/css">
-      @media screen and (min-width: 992px) {
-        .the-icons li {
-          width: 12.5%;
-        }
-      }
-      .the-buttons > li {
-        float: left;
-        height: 80px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        font-size: 12px;
-        line-height: 1.25;
-        text-align: center;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        margin: 0 -1px -1px 0;
-      }
-      .the-icons .glyphicon {
-        display: block;
-        margin: 5px auto;
-        vertical-align: middle;
-        margin-right: 3px;
-        font-size: 24px;
-      }
-      .the-icons li {
-        float: left;
-        width: 100px;
-        height: 110px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        font-size: 12px;
-        line-height: 1.25;
-        text-align: center;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        margin: 0 -1px -1px 0;
-      }
-      .the-icons, .the-buttons {
-        list-style:none;
-      }
-    </style>
+
+    {% inline_editor %}
+
   </head>
-  <body>        
+  <body>
     <div class="container">
-      <h1>Bootstrap 3 Template</h1>
+      <h1>{{ page.title }}</h1>
       <p class="lead">A Full Featured Example</p>
 
       <!-- Typography
@@ -196,10 +154,10 @@ published: true
           <div class="row">
             <div class="col-lg-9 col-sm-6"><div class="well">col-lg-9 / col-sm-6</div></div>
             <div class="col-lg-3 col-sm-6"><div class="well">col-lg-3 / col-sm-6</div></div>
-          </div>  
+          </div>
         </div>
       </section>
-        
+
       <!-- Bootstrap 3 Buttons
       ================================================== -->
       <section id="buttons">
@@ -209,7 +167,7 @@ published: true
         </div>
         <h2>Button Sizes (4)</h2>
         <ul class="the-buttons clearfix">
-            <li><a class="btn btn-xs btn-primary" href="#">btn-xs</a></li>  
+            <li><a class="btn btn-xs btn-primary" href="#">btn-xs</a></li>
             <li><a class="btn btn-sm btn-primary" href="#">btn-sm</a></li>
             <li><a class="btn btn-primary" href="#">btn</a></li>
             <li><a class="btn btn-lg btn-primary" href="#">btn-lg</a></li>
@@ -223,7 +181,7 @@ published: true
           <li><a class="btn btn-warning" href="#">Warning</a></li>
           <li><a class="btn btn-danger" href="#">Danger</a></li>
           <li><a class="btn btn-primary disabled" href="#">Disabled</a></li>
-          <li><a class="btn btn-link" href="#">Link</a></li>  
+          <li><a class="btn btn-link" href="#">Link</a></li>
           <li>
             <!-- Single button -->
             <div class="btn-group">
@@ -415,7 +373,7 @@ published: true
           </ul>
         </div>
       </section>
-        
+
       <!-- Forms
       ================================================== -->
       <section id="forms">
@@ -689,7 +647,7 @@ published: true
             </div>
           </div>
           <br>
-          
+
         <!-- Panel & ListGroups
         ================================================== -->
         <hr>
@@ -748,20 +706,20 @@ published: true
               </div>
             </div>
           </div>
-          
+
         <!-- Well Sizes
         ================================================== -->
         <hr>
           <h2>Well Sizes</h2>
           <div class="row">
             <div class="col-lg-12">
-               <div class="well well-sm"> 
+               <div class="well well-sm">
                   .well-sm
-                </div>      
-                <div class="well"> 
+                </div>
+                <div class="well">
                   .well
                 </div>
-               <div class="well well-lg"> 
+               <div class="well well-lg">
                   .well-lg
                 </div>
             </div>
